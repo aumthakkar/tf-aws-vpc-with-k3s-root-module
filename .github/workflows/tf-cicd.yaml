@@ -7,16 +7,28 @@ on:
     branches:
       - main
 
+env:
+  TF_VERSION: "1.13.3"
+  TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+  TF_VAR_public_key_path: ${{ secrets.PUBLIC_KEY_PATH }}
+  TF_VAR_private_key_path: ${{ secrets.PRIVATE_KEY_PATH }}
+
+  TF_VAR_region: ${{ secrets.AWS_REGION }}
+  TF_VAR_ssh_access_ip: ${{ secrets.SSH_ACCESS_IP }}
+  
+  TF_VAR_public_subnet_cidr_block: ${{ secrets.PUBLIC_SUBNET_CIDR_BLOCK }}
+  TF_VAR_private_subnet_cidr_block: ${{ secrets.PRIVATE_SUBNET_CIDR_BLOCK }} 
+  
+  TF_VAR_dbname: ${{ secrets.DBNAME }}
+  TF_VAR_dbuser: ${{ secrets.DBUSER }}
+  TF_VAR_dbpassword: ${{ secrets.DBPASSWORD }}  
+
+
 jobs:
   plan:
     name: Terraform Install, Validate, & Plan
     runs-on: ubuntu-latest
-
-    env:
-      TF_VERSION: "1.13.3"
-      TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN_app_terraform_io }}
-      TF_VAR_public_key_path: ${{ secrets.public_key_path }}
-      TF_VAR_private_key_path: ${{ secrets.private_key_path }}
 
     steps:
       - name: Checkout Repository
