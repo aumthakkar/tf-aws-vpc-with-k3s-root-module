@@ -13,3 +13,4 @@ dbpassword = "t4b!3s2025"
 
 public_key_path  = "/Users/pranav/Documents/Programming/Terraform/oct25-mtcitf/aws-tf/mtckey.pub"
 private_key_path = "/Users/pranav/Documents/Programming/Terraform/oct25-mtcitf/aws-tf/mtckey"
+

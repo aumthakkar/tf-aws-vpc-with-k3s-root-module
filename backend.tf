@@ -6,6 +6,5 @@ terraform {
     workspaces {
       name = "pht-dev"
     }
-
   }
 }
