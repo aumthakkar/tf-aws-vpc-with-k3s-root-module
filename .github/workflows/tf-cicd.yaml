@@ -9,7 +9,7 @@ on:
 
 env:
   TF_VERSION: "1.13.3"
-  TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+  TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
   TF_VAR_public_key_path: ${{ secrets.PUBLIC_KEY_PATH }}
   TF_VAR_private_key_path: ${{ secrets.PRIVATE_KEY_PATH }}
