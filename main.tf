@@ -5,7 +5,7 @@ module "networking" {
   region      = var.region
 
   ssh_access_ip  = var.ssh_access_ip
-  vpc_cidr_block = "10.0.0.0/16"
+  vpc_cidr_block = var.vpc_cidr_block
 
   public_subnet_count  = 2
   private_subnet_count = 3
