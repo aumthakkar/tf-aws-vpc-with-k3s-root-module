@@ -10,7 +10,6 @@ variable "dbname" {}
 variable "dbuser" {}
 variable "dbpassword" {}
 
-variable "public_key_path" {}
 variable "private_key_path" {}
 
 variable "public_key" {}

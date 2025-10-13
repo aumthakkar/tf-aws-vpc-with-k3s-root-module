@@ -43,7 +43,7 @@ module "networking" {
   instance_type  = "t3.micro"
 
   key_name        = "mtckey"
-  public_key_path = var.public_key_path
+  
   public_key      = var.public_key
   private_key     = var.private_key
 
