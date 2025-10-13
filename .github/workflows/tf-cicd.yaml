@@ -60,17 +60,10 @@ jobs:
           name: private-key
           path: private_key
 
-
       - name: TF Initialize, Format, Validate & Plan
         run: |
           terraform init
-          terraform fmt -recursive
-
-      - name: Download private_key artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: private-key
-          path: . 
+          terraform fmt -recursive      
 
       - name: TF Validate
         run: |
@@ -94,6 +87,12 @@ jobs:
     runs-on: ubuntu-latest 
 
     steps: 
+      - name: Download private_key artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: private-key
+          path: . 
+          
       - name: Download tfplan file
         uses: actions/download-artifact@v4
         with:
