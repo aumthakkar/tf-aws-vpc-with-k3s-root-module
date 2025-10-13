@@ -11,7 +11,9 @@ env:
   TF_VERSION: "1.13.3"
   TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
-  TF_VAR_public_key_path: ${{ secrets.PUBLIC_KEY_PATH }}
+  TF_VAR_PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
+  TF_VAR_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+  
   TF_VAR_private_key_path: ${{ secrets.PRIVATE_KEY_PATH }}
 
   TF_VAR_region: ${{ secrets.AWS_REGION }}
@@ -47,10 +49,28 @@ jobs:
         with:
             terraform_version: ${{ env.TF_VERSION }}
 
+      - name: Create private_key file
+        run: |
+          echo "${{ secrets.PRIVATE_KEY}}" > private_key
+          chmod 400 private_key
+
+      - name: Upload private key artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-key
+          path: private_key
+
+
       - name: TF Initialize, Format, Validate & Plan
         run: |
           terraform init
           terraform fmt -recursive
+
+      - name: Download private_key artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: private-key
+          path: . 
 
       - name: TF Validate
         run: |
