@@ -11,8 +11,8 @@ env:
   TF_VERSION: "1.13.3"
   TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
-  TF_VAR_PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
-  TF_VAR_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+  TF_VAR_public_key: ${{ secrets.PUBLIC_KEY }}
+  TF_VAR_private_key: ${{ secrets.PRIVATE_KEY }}
   
   TF_VAR_private_key_path: ${{ secrets.PRIVATE_KEY_PATH }}
 
@@ -92,7 +92,7 @@ jobs:
         with:
           name: private-key
           path: . 
-          
+
       - name: Download tfplan file
         uses: actions/download-artifact@v4
         with:
