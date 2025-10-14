@@ -90,7 +90,7 @@ jobs:
     steps: 
       - name: Checkout Repository
         uses: actions/checkout@v4
-        
+
       - name: Download private_key artifact
         uses: actions/download-artifact@v4
         with:
@@ -109,7 +109,7 @@ jobs:
           terraform apply tfplan -auto-approve
 
       - name: Upload K3s kubeconfig file as artifact
-        uses: actions/upload-artifacts@v4
+        uses: actions/upload-artifact@v4
         with:
           name: k3s-kubeconfig
           path: ./k3s-*.yaml
