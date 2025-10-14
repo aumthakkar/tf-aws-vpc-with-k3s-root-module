@@ -108,6 +108,9 @@ jobs:
           name: tfplan
           path: .
 
+      - name: Terraform Init
+        run: terraform init -input=false
+
       - name: Terraform Apply  
         if: github.ref == 'refs/heads/main'
         run: |
