@@ -84,7 +84,8 @@ jobs:
     needs: plan
     
     name: Terraform Apply
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
+    environment: deploy-approval 
 
     steps: 
       - name: Download private_key artifact
@@ -100,7 +101,13 @@ jobs:
           path: .
 
       - name: Terraform Apply  
+        if: github.ref == 'refs/head/main'
         run: |
-          if: github.ref == 'refs/head/main'
           terraform apply tfplan -auto-approve
+
+      - name: Upload K3s kubeconfig file as artifact
+        uses: actions/upload-artifacts@v4
+        with:
+          name: k3s-kubeconfig
+          path: ./k3s-*.yaml
       
