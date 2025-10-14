@@ -1,4 +1,5 @@
 name: Terraform pipeline
+
 on:
   push:
     branches:
@@ -6,6 +7,16 @@ on:
   pull_request:
     branches:
       - main
+  
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Choose Terraform action"
+        required: true
+        default: "destroy"
+        type: choice
+        options:
+          - destroy
 
 env:
   TF_VERSION: "1.13.3"
@@ -13,24 +24,19 @@ env:
 
   TF_VAR_public_key: ${{ secrets.PUBLIC_KEY }}
   TF_VAR_private_key: ${{ secrets.PRIVATE_KEY }}
-  
   TF_VAR_private_key_path: ${{ secrets.PRIVATE_KEY_PATH }}
-
   TF_VAR_region: ${{ secrets.AWS_REGION }}
   TF_VAR_vpc_cidr_block: ${{ secrets.VPC_CIDR_BLOCK }}
-
-  TF_VAR_ssh_access_ip: ${{ secrets.SSH_ACCESS_IP }}  
+  TF_VAR_ssh_access_ip: ${{ secrets.SSH_ACCESS_IP }}
   TF_VAR_public_subnet_cidr_block: ${{ secrets.PUBLIC_SUBNET_CIDR_BLOCK }}
-  TF_VAR_private_subnet_cidr_block: ${{ secrets.PRIVATE_SUBNET_CIDR_BLOCK }} 
-  
+  TF_VAR_private_subnet_cidr_block: ${{ secrets.PRIVATE_SUBNET_CIDR_BLOCK }}
   TF_VAR_dbname: ${{ secrets.DBNAME }}
   TF_VAR_dbuser: ${{ secrets.DBUSER }}
-  TF_VAR_dbpassword: ${{ secrets.DBPASSWORD }}  
-
+  TF_VAR_dbpassword: ${{ secrets.DBPASSWORD }}
 
 jobs:
   plan:
-    name: Terraform Install, Validate, & Plan
+    name: Terraform Plan
     runs-on: ubuntu-latest
 
     steps:
@@ -47,11 +53,11 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-            terraform_version: ${{ env.TF_VERSION }}
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Create private_key file
         run: |
-          echo "${{ secrets.PRIVATE_KEY}}" > private_key
+          echo "${{ secrets.PRIVATE_KEY }}" > private_key
           chmod 400 private_key
 
       - name: Upload private key artifact
@@ -60,34 +66,26 @@ jobs:
           name: private-key
           path: private_key
 
-      - name: TF Initialize, Format, Validate & Plan
+      - name: Terraform Init & Plan
         run: |
           terraform init
-          terraform fmt -recursive      
-
-      - name: TF Validate
-        run: |
+          terraform fmt -recursive
           terraform validate
-      
-      - name: TF Plan
-        run: |
           terraform plan -out=tfplan
 
-      - name: Upload tfplan file
+      - name: Upload Plan File
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
           path: tfplan
 
-
   deploy:
+    name: Terraform Apply (Manual Approval)
     needs: plan
-    
-    name: Terraform Apply
     runs-on: ubuntu-latest
-    environment: deploy-approval 
+    environment: deploy-approval   # 👈 Requires approval in GitHub UI
 
-    steps: 
+    steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -97,35 +95,61 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-            terraform_version: ${{ env.TF_VERSION }}
+          terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Download private_key artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: private-key
-          path: . 
-
-      - name: Download tfplan file
+      - name: Download Plan File
         uses: actions/download-artifact@v4
         with:
           name: tfplan
           path: .
 
+      - name: Download Private Key
+        uses: actions/download-artifact@v4
+        with:
+          name: private-key
+          path: .
+
       - name: Terraform Init
         run: terraform init -input=false
 
-      - name: Terraform Apply  
-        if: github.ref == 'refs/heads/main'
-        run: |
-          terraform apply -auto-approve tfplan
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
 
-      - name: Upload K3s kubeconfig file as artifact
+      - name: Upload K3s Kubeconfig
         uses: actions/upload-artifact@v4
         with:
           name: k3s-kubeconfig
           path: ./k3s-*.yaml
-      
+
+  destroy:
+    if: github.event.inputs.action == 'destroy'
+    name: Terraform Destroy Infrastructure
+    runs-on: ubuntu-latest
+    environment: destroy-approval  # 👈 requires manual approval in GitHub Environments
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
+
