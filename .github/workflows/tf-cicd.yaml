@@ -85,7 +85,7 @@ jobs:
     
     name: Terraform Apply
     runs-on: ubuntu-latest
-    environment: deploy-approval 
+     
 
     steps: 
       - name: Download private_key artifact
