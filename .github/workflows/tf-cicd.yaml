@@ -111,7 +111,7 @@ jobs:
       - name: Terraform Apply  
         if: github.ref == 'refs/heads/main'
         run: |
-          terraform apply tfplan -auto-approve
+          terraform apply -auto-approve tfplan
 
       - name: Upload K3s kubeconfig file as artifact
         uses: actions/upload-artifact@v4
