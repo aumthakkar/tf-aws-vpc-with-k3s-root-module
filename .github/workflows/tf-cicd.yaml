@@ -23,7 +23,7 @@ env:
   TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
   TF_VAR_public_key: ${{ secrets.PUBLIC_KEY }}
-  TF_VAR_private_key: ${{ secrets.PRIVATE_KEY }}
+  TF_VAR_private_key: "${{ github.workspace }}/private_key"
   TF_VAR_private_key_path: ${{ secrets.PRIVATE_KEY_PATH }}
   TF_VAR_region: ${{ secrets.AWS_REGION }}
   TF_VAR_vpc_cidr_block: ${{ secrets.VPC_CIDR_BLOCK }}
@@ -115,6 +115,12 @@ jobs:
 
       - name: Terraform Init
         run: terraform init -input=false
+
+      - name: Debug SSH key existence
+        run: |
+          ls -l ${{ github.workspace }}
+          file ${{ github.workspace }}/private_key
+          cat ${{ github.workspace }}/private_key | head -5
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
