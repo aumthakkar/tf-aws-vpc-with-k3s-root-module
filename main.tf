@@ -45,6 +45,7 @@ module "networking" {
   key_name        = "mtckey"
   
   public_key      = var.public_key
+  
 
   instance_vol_size = 10
   dbpass            = var.dbpassword

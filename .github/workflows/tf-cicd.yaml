@@ -52,11 +52,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-
       - name: Create private_key file
         run: |
           echo "${{ secrets.PRIVATE_KEY }}" > private_key
@@ -67,6 +62,11 @@ jobs:
         with:
           name: private-key
           path: private_key
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Terraform Init & Plan
         run: |
@@ -118,10 +118,13 @@ jobs:
       - name: Terraform Init
         run: terraform init -input=false
 
-      - name: Verify key readability
+      - name: Verify SSH Key & Permissions
         run: |
+          echo "Verifying private key existence..."
           ls -l ${{ github.workspace }}/private_key
+          echo "First few lines of the key:"
           head -5 ${{ github.workspace }}/private_key
+          echo "Testing file() read from Terraform..."
           terraform console <<< 'file("${{ github.workspace }}/private_key") != ""'
 
       - name: Terraform Apply
