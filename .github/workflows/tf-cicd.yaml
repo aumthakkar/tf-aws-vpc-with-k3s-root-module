@@ -23,8 +23,7 @@ env:
   TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
   TF_VAR_public_key: ${{ secrets.PUBLIC_KEY }}
-  TF_VAR_private_key_path: "${{ github.workspace }}/private_key"
-
+  
   TF_VAR_region: ${{ secrets.AWS_REGION }}
   TF_VAR_vpc_cidr_block: ${{ secrets.VPC_CIDR_BLOCK }}
 
@@ -52,16 +51,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Create private_key file
-        run: |
-          echo "${{ secrets.PRIVATE_KEY }}" > private_key
-          chmod 400 private_key
-
-      - name: Upload private key artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: private-key
-          path: private_key
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -109,21 +98,8 @@ jobs:
           name: tfplan
           path: .
 
-      - name: Download Private Key
-        uses: actions/download-artifact@v4
-        with:
-          name: private-key
-          path: .
-
       - name: Terraform Init
         run: terraform init -input=false
-
-      - name: Verify SSH Key & Permissions
-        run: |
-          echo "Verifying private key existence..."
-          ls -l ${{ github.workspace }}/private_key
-          echo "First few lines of the key:"
-          head -5 ${{ github.workspace }}/private_key
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
@@ -138,7 +114,7 @@ jobs:
     if: github.event.inputs.action == 'destroy'
     name: Terraform Destroy Infrastructure
     runs-on: ubuntu-latest
-    environment: destroy-approval  # 👈 requires manual approval in GitHub Environments
+    environment: deploy-approval  # 👈 requires manual approval in GitHub Environments
 
     steps:
       - name: Checkout Repository

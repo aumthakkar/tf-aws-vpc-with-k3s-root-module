@@ -50,8 +50,6 @@ module "networking" {
   instance_vol_size = 10
   dbpass            = var.dbpassword
 
-  private_key_path = var.private_key_path
-
   host_port = 8000
 }
 
