@@ -124,8 +124,6 @@ jobs:
           ls -l ${{ github.workspace }}/private_key
           echo "First few lines of the key:"
           head -5 ${{ github.workspace }}/private_key
-          echo "Testing file() read from Terraform..."
-          terraform console <<< 'file("${{ github.workspace }}/private_key") != ""'
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
