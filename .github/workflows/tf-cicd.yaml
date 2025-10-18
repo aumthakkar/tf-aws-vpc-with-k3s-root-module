@@ -110,10 +110,10 @@ jobs:
           path: ./k3s-*.yaml
 
   destroy:
-    if: github.event.inputs.action == 'destroy'
+    if: ${{ inputs.action == 'destroy' }} # Trying this one instead of if: github.event.inputs.action == 'destroy'
     name: Terraform Destroy Infrastructure
     runs-on: ubuntu-latest
-    environment: deploy-approval  # 👈 requires manual approval in GitHub Environments
+    environment: destroy-approval  # 👈 requires manual approval in GitHub Environments
 
     steps:
       - name: Checkout Repository
