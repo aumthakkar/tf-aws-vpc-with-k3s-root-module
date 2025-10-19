@@ -108,31 +108,32 @@ jobs:
           name: k3s-kubeconfig
           path: ./k3s-*.yaml
 
-  # destroy:
-  #   if: ${{ inputs.action == 'destroy' }} # Trying this one instead of if: github.event.inputs.action == 'destroy' which is good too
-  #   name: Terraform Destroy Infrastructure
-  #   runs-on: ubuntu-latest
-  #   environment: destroy-approval  # 👈 requires manual approval in GitHub Environments
+  destroy:
+    if: ${{ inputs.action == 'destroy' }} # This one also works 👉 if: github.event.inputs.action == 'destroy' which is good too
+    name: Terraform Destroy Infrastructure
+    runs-on: ubuntu-latest
+    needs: deploy
+    environment: destroy-approval  # 👈 requires manual approval in GitHub Environments
 
-  #   steps:
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-  #     - name: Configure AWS Credentials
-  #       uses: aws-actions/configure-aws-credentials@v5.1.0
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-  #     - name: Setup Terraform
-  #       uses: hashicorp/setup-terraform@v3
-  #       with:
-  #         terraform_version: ${{ env.TF_VERSION }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
 
-  #     - name: Terraform Init
-  #       run: terraform init -input=false
+      - name: Terraform Init
+        run: terraform init -input=false
 
-  #     - name: Terraform Destroy
-  #       run: terraform destroy -auto-approve
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
 
