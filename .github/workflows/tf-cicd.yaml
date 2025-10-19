@@ -24,7 +24,7 @@ env:
 
   TF_VAR_public_key: ${{ secrets.PUBLIC_KEY }}
   
-  TF_VAR_region: ${{ secrets.AWS_REGION }}
+  #TF_VAR_region: ${{ secrets.AWS_REGION }}
   TF_VAR_vpc_cidr_block: ${{ secrets.VPC_CIDR_BLOCK }}
 
   TF_VAR_ssh_access_ip: ${{ secrets.SSH_ACCESS_IP }}
@@ -69,7 +69,7 @@ jobs:
           path: tfplan
 
   deploy:
-    name: Terraform Apply (Manual Approval)
+    name: Terraform Apply (Manual Approval needed)
     needs: plan
     runs-on: ubuntu-latest
     environment: deploy-approval   # 👈 Requires approval in GitHub UI
@@ -102,11 +102,6 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
 
-      - name: Upload K3s Kubeconfig
-        uses: actions/upload-artifact@v4
-        with:
-          name: k3s-kubeconfig
-          path: ./k3s-*.yaml
 
   destroy:
     if: ${{ inputs.action == 'destroy' }} # This one also works 👉 if: github.event.inputs.action == 'destroy' which is good too
