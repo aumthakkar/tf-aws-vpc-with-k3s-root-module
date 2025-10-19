@@ -2,7 +2,7 @@ module "networking" {
   source = "github.com/aumthakkar/tf-aws-vpc-with-rancher-k3s.git"
 
   name_prefix = "pht-dev"
-  region      = var.region
+  region      = "eu-north-1"
 
   ssh_access_ip  = var.ssh_access_ip
   vpc_cidr_block = var.vpc_cidr_block
