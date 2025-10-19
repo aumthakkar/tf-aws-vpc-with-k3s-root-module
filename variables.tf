@@ -1,4 +1,4 @@
-#variable "region" {}
+variable "region" {}
 
 variable "vpc_cidr_block" {}
 variable "ssh_access_ip" {}
