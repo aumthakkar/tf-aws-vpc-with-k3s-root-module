@@ -112,7 +112,6 @@ jobs:
     if: ${{ inputs.action == 'destroy' }} # This one also works 👉 if: github.event.inputs.action == 'destroy' which is good too
     name: Terraform Destroy Infrastructure
     runs-on: ubuntu-latest
-    needs: deploy
     environment: destroy-approval  # 👈 requires manual approval in GitHub Environments
 
     steps:
