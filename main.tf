@@ -14,7 +14,7 @@ module "networking" {
   public_subnet_cidr_block  = var.public_subnet_cidr_block
   private_subnet_cidr_block = var.private_subnet_cidr_block
 
-  create_nat_gateway = true
+  create_nat_gateway = false
 
   create_db_subnet_group = true
   db_storage             = 10
