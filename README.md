@@ -17,11 +17,13 @@ module "networking" {
   public_subnet_cidr_block  = var.public_subnet_cidr_block
   private_subnet_cidr_block = var.private_subnet_cidr_block
 
+  create_nat_gateway = true
+
   create_db_subnet_group = true
-  db_storage        = 10
-  db_instance_class = "db.t3.micro"
-  db_engine         = "mysql"
-  db_engine_version = "8.0.39"
+  db_storage             = 10
+  db_instance_class      = "db.t3.micro"
+  db_engine              = "mysql"
+  db_engine_version      = "8.0.39"
 
   db_identifier = "pht-db"
   dbname        = var.dbname
@@ -60,21 +62,22 @@ module "networking" {
 ## Description
 -    This module creates an AWS VPC with all the core Networking, Load-Balancing objects consisting of:
         - Two Security groups (One public and one RDS security group)
-            - In the Public security group, SSH access is kept open only for the user's single IP address which is provided in the SSH_ACCESS_IP variable.
+            - In the Public security group, SSH access is kept open only for the user's single IP address which is provided in the ssh_access_ip environment variable.
         - Public and Private Subnets.
             - Based on the count of the number of subnets selected by the user in the root module, it can conditonally, automatically create those subnets along with their IP addresses using the cidrsubnet() based on the VPC CIDR block selected. 
             - However, if the user needs to use the subnet IP addresses of their choice, then those subnet IP addresses can be manually configured in the user supplied variables/*.tfvars file in the root module.
             - To do this, a value of "false" must be provided to the 'auto_create_subnet_addresses' parameter in the root module.
             - These subnets will then be created in the automatically selected, shuffled Availability Zones.  
-        - Two Route tables 
-            - A Public and a Private Route table alongwith their associations to the respective subnets
+        - Three Route tables: 
+            - A Public Route Table, a Conditional Private Route table (which is created only if NAT Gateway creation is selected) alongwith their associations to the respective subnets and a default main private route table.
         - An Internet Gateway. 
-        - A NAT Gateway.
-        - EC2 instance(s) as Kuberetes node(s) for the K3s Rancher Kubernetes Cluster.
+        - A NAT Gateway. 
+            - This NAT Gateway is conditionally created and is based on the boolean value for the create_nat_gateway argument in the root main/tf file. 
+        - EC2 instance(s) as Kubernetes node(s) for the K3s Rancher Kubernetes Cluster.
             - This EC2 instance extracts the latest Ubuntu AMI for its machine image. 
-        - Upload public key onto AWS.
+        - Uploading public key onto AWS.
         - A MySQL Database.
-        - Finally it  creates Rancher K3s Kubernetes Cluster which uses that MySQL DB instead of the default etcd database as its database.
+        - Finally it  creates Rancher K3s Kubernetes Cluster which uses that MySQL DB instead of the default etcd as its database.
 
 
 ## CI/CD
@@ -107,7 +110,7 @@ module "networking" {
 | VPC related Inputs:                            |              |                                                                                                                                              |
 | Name                                           | Type         | Description                                                                                                                                  |
 | region                                         | string       | The AWS region for your VPC.                                                                                                                 |
-| ssh_access_ip                                  | string       | User's individual public IP address                                                                                                          |
+| ssh_access_ip                                  | string       | User's individual public IP address.                                                                                                         |
 | vpc_cidr_block                                 | string       | The VPC_CIDR of your setup.                                                                                                                  |
 |                                                |              |                                                                                                                                              |
 | public_subnet_count                            | number       | Number of public subnets to create.                                                                                                          |
@@ -121,10 +124,15 @@ module "networking" {
 | Name                                           | Type         | Description                                                                                                                                  |
 | create_db_subnet_group                         | boolean      | Whether to create DB subnet_group for the MySQL database. Will be needed if MySQL DB has to be created.                                      |
 |                                                |              |                                                                                                                                              |
-| db_storage                                     | number       | DB Storage in Gibibytes (Gi).                                                                                                                |
+| db_storage                                     | number       | DB Storage in Gibibytes (GiB).                                                                                                               |
 | db_instance_class                              | string       | DB Instance Class.                                                                                                                           |
 | db_engine                                      | string       | DB Engine.                                                                                                                                   |
 | db_engine_version                              | string       | DB Engine version.                                                                                                                           |
+|                                                |              |                                                                                                                                              |
+| db_identifier                                  | string       | DB identifier to be assigned to this database.                                                                                               |
+| dbname                                         | string       | DB name to be assigned to this database.                                                                                                     |
+| dbuser                                         | string       | DB user to login to this database.                                                                                                           |
+| dbpassword                                     | string       | DB password to login to this database.                                                                                                       |
 |                                                |              |                                                                                                                                              |
 | skip_db_snapshot                               | boolean      | Whether to skip the DB snapshot at the time of deleting the DB Instance.                                                                     |
 |                                                |              |                                                                                                                                              |
@@ -133,7 +141,7 @@ module "networking" {
 | tg_port                                        | number       | Load Balancer Target group port number.                                                                                                      |
 | tg_protocol                                    | string       | Load Balancer Target group protocol.                                                                                                         |
 |                                                |              |                                                                                                                                              |
-| lb_healthy_threshold                           | number       | Number of consecutive health check successes required before considering a target healthy. The range is 2-10. Defaults to 3                  |
+| lb_healthy_threshold                           | number       | Number of consecutive health check successes required before considering a target healthy. The range is 2-10. Defaults to 3.                 |
 | lb_unhealthy_threshold                         | number       | Number of consecutive health check failures required before considering a target unhealthy. The range is 2-10. Defaults to 3.                |
 | lb_interval                                    | number       | Approximate amount of time, in seconds, between health checks of an individual target. The range is 5-300.                                   |
 | lb_timeout                                     | number       | Amount of time, in seconds, during which no response from a target means a failed health check. The range is 2–120 seconds.                  |
@@ -147,7 +155,7 @@ module "networking" {
 | instance_type                                  | string       | Instance type.                                                                                                                               |
 |                                                |              |                                                                                                                                              |
 | key_name                                       | string       | Private key name of the key uploaded to AWS.                                                                                                 |
-| public_key                                     | variable     | Pass as a variable here and will be picked up either from the Github Actions Secret or from the .tfvars file if running w/o CI/CD.           |
+| public_key                                     | variable     | Pass as a variable here and it will be picked up either from the Github Actions Secret.                                                      |
 |                                                |              |                                                                                                                                              |
 | instance_vol_size                              | number       | The EBS instance volume size attached to this EC2 instance.                                                                                  |
 |                                                |              |                                                                                                                                              |
