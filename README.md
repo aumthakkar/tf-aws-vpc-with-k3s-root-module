@@ -155,11 +155,9 @@ module "networking" {
 | instance_type                                  | string       | Instance type.                                                                                                                               |
 |                                                |              |                                                                                                                                              |
 | key_name                                       | string       | Private key name of the key uploaded to AWS.                                                                                                 |
-| public_key                                     | variable     | Pass as a variable here and it will be picked up either from the Github Actions Secret.                                                      |
+| public_key                                     | variable     | Pass as a variable here and its value will be picked up from the Github Actions Secret.                                                      |
 |                                                |              |                                                                                                                                              |
 | instance_vol_size                              | number       | The EBS instance volume size attached to this EC2 instance.                                                                                  |
-|                                                |              |                                                                                                                                              |
-| dbpass                                         | string       | The DB password to be passed to the EC2 instance's userdata for K3s to connect to the MySQL database.                                        |
 |                                                |              |                                                                                                                                              |
 | host_port                                      | number       | The host port to be used by the kubernetes deployments created there.                                                                        |
 |                                                |              |                                                                                                                                              |
